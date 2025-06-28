@@ -1,0 +1,84 @@
+📄 Lead Profiling Report for: example.com
+   (Generated on: 2025-06-28 11:27:30 UTC)
+
+--------------------------------------------------
+🌐 DOMAIN INFORMATION
+--------------------------------------------------
+- Domain:           example.com
+- Registrar:        RESERVED-Internet Assigned Numbers Authority
+- Creation Date:    1995-08-14T04:00:00
+- Expiration Date:  2025-08-13T04:00:00
+- Domain Age:       29 years, 10 months
+
+--------------------------------------------------
+🌐 SSL CERTIFICATE
+--------------------------------------------------
+- HTTPS Enabled:    Yes
+- Certificate Valid:Yes
+- Issuer:           DigiCert Inc
+- Common Name (CN): *.example.com
+- Subject Alt Names (SANs):
+    - *.example.com
+    - example.com
+- Certificate Expiry: 2026-01-15T23:59:59+00:00
+
+--------------------------------------------------
+🌐 TECH STACK (SERVER)
+--------------------------------------------------
+- Server Header:    N/A
+
+--------------------------------------------------
+🌐 SECURITY HEADERS (CHECKED FROM: HTTPS://EXAMPLE.COM/)
+--------------------------------------------------
+- Content-Security-Policy:     Missing
+- Strict-Transport-Security:   Missing
+- X-Frame-Options:             Missing
+- X-XSS-Protection:            Missing
+
+  Present Headers:
+    - None of the specifically checked headers were found.
+
+  Missing Checked Headers:
+    - Content-Security-Policy
+    - Strict-Transport-Security
+    - X-Frame-Options
+    - X-XSS-Protection
+
+--------------------------------------------------
+🌐 ROBOTS.TXT (CHECKED FROM: HTTP://EXAMPLE.COM/ROBOTS.TXT)
+--------------------------------------------------
+- Exists:           No
+- Content Preview (first 10 lines):
+  N/A
+- Disallow Rules (Sample):
+    None Found
+- Sitemap Directives:
+    None Found
+- Other Key Directives (Sample):
+    None Found
+
+--------------------------------------------------
+🌐 DNS RECORDS
+--------------------------------------------------
+- A Records:
+    - 23.192.228.80
+    - 23.192.228.84
+    - 23.215.0.136
+    - 23.215.0.138
+    - 96.7.128.175
+    - 96.7.128.198
+- NS Records:
+    - a.iana-servers.net
+    - b.iana-servers.net
+- MX Records:
+    - Preference: 0, Exchange: .
+
+--------------------------------------------------
+🌐 GENERAL ERRORS / NOTES
+--------------------------------------------------
+- Placeholder for VirusTotal: VirusTotal API key not provided. Skipping VirusTotal check.
+- Placeholder for SEO Index Visibility: Manual check recommended for SEO index visibility.
+
+--------------------------------------------------
+⚠️ Scan Completed with Errors/Warnings (see details above)
+--------------------------------------------------

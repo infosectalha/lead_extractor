@@ -704,17 +704,256 @@ def main():
     # Run the full profile
     profile_results = run_domain_profile(args.domain_input)
 
-    # Pretty print the aggregated results
-    print("\n\n--- Aggregated Profile Results ---")
+    # Pretty print the aggregated results (JSON)
+    print("\n\n--- Aggregated Profile Results (JSON) ---")
     print(json.dumps(profile_results, indent=4))
 
+    # Generate and display human-readable text report
+    print("\n\n--- Human-Readable Report ---")
+    text_report = generate_text_report(profile_results)
+    print(text_report)
+
+    # Save the text report to a file
+    if profile_results.get("domain"): # Ensure there's a parsed domain for the filename
+        report_filename = f"{profile_results['domain']}_report.txt"
+        try:
+            with open(report_filename, "w", encoding="utf-8") as f:
+                f.write(text_report)
+            print(f"\nHuman-readable report saved to: {report_filename}")
+        except IOError as e:
+            print(f"\nError saving text report to file: {e}")
+    else:
+        print("\nSkipping saving text report: No valid domain was parsed.")
+
+
     if profile_results["errors"]:
-        print("\n--- Errors Encountered During Profiling ---")
+        # This summary is still useful even with the text report having error sections
+        print("\n--- Summary of Errors Encountered During Profiling ---")
         for err in profile_results["errors"]:
             print(f"- {err}")
 
     # --- Previous Test Sections (now part of run_domain_profile or CLI driven) ---
     # ... (test_domains_for_dns, etc.) ...
+
+def generate_text_report(profile_results: dict) -> str:
+    """
+    Generates a human-readable text report from the profile_results dictionary.
+    """
+    report_parts = []
+    domain = profile_results.get("domain", "N/A")
+    data = profile_results.get("profile_data", {})
+    general_errors = profile_results.get("errors", [])
+
+    generation_time = dt.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+    report_parts.append(f"📄 Lead Profiling Report for: {domain}")
+    report_parts.append(f"   (Generated on: {generation_time})\n")
+
+    def section_header(title):
+        report_parts.append("--------------------------------------------------")
+        report_parts.append(f"🌐 {title.upper()}") # Assuming all titles are like this, adjust if not
+        report_parts.append("--------------------------------------------------")
+
+    def format_list(items, indent=4, prefix="- ", max_items=10):
+        if not items:
+            return [(" " * indent) + "None Found"]
+        formatted = []
+        for i, item in enumerate(items):
+            if i < max_items:
+                if isinstance(item, dict): # For MX records
+                    formatted.append(f"{' ' * indent}{prefix}Preference: {item.get('preference', 'N/A')}, Exchange: {item.get('exchange', 'N/A')}")
+                else:
+                    formatted.append(f"{' ' * indent}{prefix}{item}")
+            elif i == max_items:
+                formatted.append(f"{' ' * indent}{prefix}...and {len(items) - max_items} more.")
+                break
+        return formatted
+
+    def get_data_value(module_data, key, default="N/A"):
+        if module_data is None: return default
+        value = module_data.get(key)
+        return value if value is not None else default
+
+    # DOMAIN INFORMATION
+    section_header("DOMAIN INFORMATION")
+    whois_data = data.get("whois", {})
+    report_parts.append(f"- Domain:           {domain}")
+    report_parts.append(f"- Registrar:        {get_data_value(whois_data, 'registrar')}")
+    report_parts.append(f"- Creation Date:    {get_data_value(whois_data, 'creation_date')}")
+    report_parts.append(f"- Expiration Date:  {get_data_value(whois_data, 'expiration_date')}")
+    age_y = get_data_value(whois_data, 'domain_age_years', None)
+    age_m = get_data_value(whois_data, 'domain_age_months_remainder', None)
+    if age_y is not None and age_m is not None:
+        report_parts.append(f"- Domain Age:       {age_y} years, {age_m} months")
+    else:
+        report_parts.append(f"- Domain Age:       N/A")
+    if whois_data and whois_data.get("error"):
+        report_parts.append(f"  (WHOIS Error: {whois_data['error']})")
+    report_parts.append("")
+
+    # SSL CERTIFICATE
+    section_header("SSL CERTIFICATE")
+    ssl_data = data.get("ssl", {})
+    report_parts.append(f"- HTTPS Enabled:    {'Yes' if ssl_data.get('ssl_enabled') else 'No'}")
+    is_valid_ssl = ssl_data.get('is_valid')
+    report_parts.append(f"- Certificate Valid:{'Yes' if is_valid_ssl is True else 'No' if is_valid_ssl is False else 'N/A'}")
+    report_parts.append(f"- Issuer:           {get_data_value(ssl_data, 'issuer')}")
+    report_parts.append(f"- Common Name (CN): {get_data_value(ssl_data, 'common_name')}")
+    report_parts.append("- Subject Alt Names (SANs):")
+    sans = ssl_data.get("subject_alt_names", [])
+    report_parts.extend(format_list(sans, indent=4, max_items=5))
+    report_parts.append(f"- Certificate Expiry: {get_data_value(ssl_data, 'expiry_date')}")
+    if ssl_data and ssl_data.get("error") and not (is_valid_ssl is False and "Certificate has expired" in ssl_data["error"]): # Avoid double reporting expiry
+        # Only show error if it's not just about the cert being invalid (which is already stated)
+        # or if it provides more info than just "verification failed" for known bad certs.
+        # This logic might need refinement based on typical error messages.
+        if "verification failed" not in ssl_data["error"] or "Could not resolve" in ssl_data["error"]:
+             report_parts.append(f"  (SSL Check Error: {ssl_data['error']})")
+    report_parts.append("")
+
+    # TECH STACK (Server)
+    section_header("TECH STACK (Server)")
+    server_data = data.get("server_info", {})
+    server_header_val = get_data_value(server_data, 'server_header')
+    report_parts.append(f"- Server Header:    {server_header_val if server_header_val else 'Not Found'}")
+    if server_data and server_data.get("error") and "No 'Server' header found" not in server_data.get("error"):
+        report_parts.append(f"  (Server Check Error: {server_data['error']})")
+    report_parts.append("")
+
+    # SECURITY HEADERS
+    sec_headers_data = data.get("security_headers", {})
+    checked_url_sec = get_data_value(sec_headers_data, 'checked_url', domain)
+    section_header(f"SECURITY HEADERS (Checked from: {checked_url_sec})")
+
+    headers_to_check = ["Content-Security-Policy", "Strict-Transport-Security", "X-Frame-Options", "X-XSS-Protection"]
+    present_h = sec_headers_data.get("headers_present", {})
+    missing_h = sec_headers_data.get("headers_missing", [])
+
+    for h in headers_to_check:
+        if h in present_h:
+            value = present_h[h]
+            # Truncate very long values like CSP
+            display_value = (value[:70] + '...') if len(value) > 75 else value
+            report_parts.append(f"- {h+':':<28} Present: {display_value}")
+        elif h in missing_h:
+            report_parts.append(f"- {h+':':<28} Missing")
+        else: # Not in present or missing, implies an error before check or not in the specific list
+            if sec_headers_data.get("error"):
+                 report_parts.append(f"- {h+':':<28} Error (see below)")
+            else:
+                 report_parts.append(f"- {h+':':<28} N/A (Not found in scan results)")
+
+
+    report_parts.append("\n  Present Headers:")
+    if present_h:
+        for name, value in present_h.items():
+            display_value = (value[:70] + '...') if len(value) > 75 else value
+            report_parts.append(f"    - {name}: {display_value}")
+    else:
+        report_parts.append("    - None of the specifically checked headers were found.")
+
+    report_parts.append("\n  Missing Checked Headers:")
+    if missing_h:
+        report_parts.extend(format_list(missing_h, indent=4))
+    else:
+        if not sec_headers_data.get("error"):
+            report_parts.append("    - All specifically checked headers are present.")
+        else:
+            report_parts.append("    - N/A due to error.")
+
+    if sec_headers_data and sec_headers_data.get("error"):
+        report_parts.append(f"  (Security Headers Check Error: {sec_headers_data['error']})")
+    report_parts.append("")
+
+    # ROBOTS.TXT
+    robots_data = data.get("robots_txt", {})
+    checked_url_robots = get_data_value(robots_data, 'robots_txt_url', f"http(s)://{domain}/robots.txt")
+    section_header(f"ROBOTS.TXT (Checked from: {checked_url_robots})")
+    report_parts.append(f"- Exists:           {'Yes' if robots_data.get('robots_txt_exists') else 'No'}")
+    report_parts.append("- Content Preview (first 10 lines):")
+    preview = get_data_value(robots_data, 'content_preview', 'N/A')
+    if preview != 'N/A':
+        for line in preview.splitlines():
+            report_parts.append(f"  {line}")
+    else:
+        report_parts.append(f"  N/A")
+
+    report_parts.append("- Disallow Rules (Sample):")
+    report_parts.extend(format_list(robots_data.get("disallow_rules", []), indent=4, max_items=5))
+    report_parts.append("- Sitemap Directives:")
+    report_parts.extend(format_list(robots_data.get("sitemap_directives", []), indent=4, max_items=5))
+    report_parts.append("- Other Key Directives (Sample):")
+    report_parts.extend(format_list(robots_data.get("other_directives", []), indent=4, max_items=5))
+    if robots_data and robots_data.get("error") and "not found" not in robots_data.get("error").lower(): # Don't show simple 404 as error here
+        report_parts.append(f"  (Robots.txt Check Error: {robots_data['error']})")
+    report_parts.append("")
+
+    # DNS RECORDS
+    section_header("DNS RECORDS")
+    dns_data = data.get("dns_records", {})
+    report_parts.append("- A Records:")
+    report_parts.extend(format_list(dns_data.get("a_records", [])))
+    report_parts.append("- NS Records:")
+    report_parts.extend(format_list(dns_data.get("ns_records", [])))
+    report_parts.append("- MX Records:")
+    report_parts.extend(format_list(dns_data.get("mx_records", [])))
+    if dns_data and dns_data.get("error"):
+        report_parts.append(f"  (DNS Records Error: {dns_data['error']})")
+    report_parts.append("")
+
+    # GENERAL ERRORS / NOTES
+    section_header("GENERAL ERRORS / NOTES")
+    # Filter out errors already displayed or specific to placeholders for this summary
+
+    # Get actual error messages that might have been displayed inline with modules
+    potential_inline_errors = [
+        str(profile_results["profile_data"].get(module, {}).get("error", "impossible_string_match"))
+        for module in ["whois", "ssl", "server_info", "security_headers", "robots_txt", "dns_records"]
+    ]
+    actual_inline_error_substrings = {s for s in potential_inline_errors if s != "impossible_string_match"}
+
+    filtered_general_errors = []
+    if general_errors: # Ensure general_errors is not None
+        for err_message_from_list in general_errors:
+            if not err_message_from_list: # Skip if None or empty string in general_errors
+                continue
+            is_already_shown_inline = False
+            for inline_substring in actual_inline_error_substrings:
+                if inline_substring in err_message_from_list: # Check if the general error *contains* an inline error msg
+                    is_already_shown_inline = True
+                    break
+            if not is_already_shown_inline:
+                filtered_general_errors.append(err_message_from_list)
+
+    if filtered_general_errors:
+        for err_msg in filtered_general_errors:
+             report_parts.append(f"- {err_msg}")
+    else:
+        if not general_errors: # No errors at all
+             report_parts.append("- None")
+
+    # Placeholder notes
+    vt_info = data.get("virustotal", {})
+    if vt_info.get("error") == "VirusTotal API key not provided.":
+        report_parts.append("- Placeholder for VirusTotal: VirusTotal API key not provided. Skipping VirusTotal check.")
+    elif vt_info.get("error") == "VirusTotal integration not fully implemented yet.":
+         report_parts.append("- Placeholder for VirusTotal: Integration not fully implemented.")
+
+    seo_info = data.get("seo_visibility", {})
+    if seo_info.get("error") and "not fully implemented" in seo_info.get("error"):
+        report_parts.append(f"- Placeholder for SEO Index Visibility: {seo_info.get('status_notes')}")
+    report_parts.append("")
+
+    # FOOTER
+    report_parts.append("--------------------------------------------------")
+    if not general_errors and not any(m.get("error") for m in data.values() if isinstance(m, dict)): # crude check for any error
+        report_parts.append("✅ Scan Completed Successfully")
+    else:
+        report_parts.append("⚠️ Scan Completed with Errors/Warnings (see details above)")
+    report_parts.append("--------------------------------------------------")
+
+    return "\n".join(report_parts)
+
 
     # print("\n--- Testing domain extraction (Commented out) ---")
     # inputs = [

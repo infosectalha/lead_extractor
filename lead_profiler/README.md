@@ -75,8 +75,12 @@ This version of the tool supports profiling a single domain provided as a comman
     The tool will output the collected information in a JSON format to the console.
 
 ## 📄 Output
-Currently, the tool prints a JSON object containing the full analysis results to the standard output.
-*CSV output and per-domain mini-reports are planned for future phases.*
+The tool produces two main outputs when run for a single domain:
+
+1.  **JSON Output to Console**: A detailed JSON object containing all collected data and errors is printed to the standard output. This is useful for programmatic access or for a complete data dump.
+2.  **Human-Readable Text Report File**: A `.txt` file named `{domain}_report.txt` (e.g., `example.com_report.txt`) is saved in the current working directory. This report is formatted for easy human reading and provides a summary of the findings. The same human-readable report is also printed to the console.
+
+*CSV output for batch processing is planned for a future phase.*
 
 ## 🚫 Excluded (As per initial design)
 *   No active scanning (Nmap, Nikto).

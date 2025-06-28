@@ -1,0 +1,107 @@
+📄 Lead Profiling Report for: github.com
+   (Generated on: 2025-06-28 11:26:37 UTC)
+
+--------------------------------------------------
+🌐 DOMAIN INFORMATION
+--------------------------------------------------
+- Domain:           github.com
+- Registrar:        MarkMonitor, Inc.
+- Creation Date:    2007-10-09T18:20:50
+- Expiration Date:  2026-10-09T18:20:50
+- Domain Age:       17 years, 8 months
+
+--------------------------------------------------
+🌐 SSL CERTIFICATE
+--------------------------------------------------
+- HTTPS Enabled:    Yes
+- Certificate Valid:Yes
+- Issuer:           Sectigo Limited
+- Common Name (CN): github.com
+- Subject Alt Names (SANs):
+    - github.com
+    - www.github.com
+- Certificate Expiry: 2026-02-05T23:59:59+00:00
+
+--------------------------------------------------
+🌐 TECH STACK (SERVER)
+--------------------------------------------------
+- Server Header:    github.com
+
+--------------------------------------------------
+🌐 SECURITY HEADERS (CHECKED FROM: HTTPS://GITHUB.COM/)
+--------------------------------------------------
+- Content-Security-Policy:     Present: default-src 'none'; base-uri 'self'; child-src github.githubassets.com...
+- Strict-Transport-Security:   Present: max-age=31536000; includeSubdomains; preload
+- X-Frame-Options:             Present: deny
+- X-XSS-Protection:            Present: 0
+
+  Present Headers:
+    - Content-Security-Policy: default-src 'none'; base-uri 'self'; child-src github.githubassets.com...
+    - Strict-Transport-Security: max-age=31536000; includeSubdomains; preload
+    - X-Frame-Options: deny
+    - X-XSS-Protection: 0
+
+  Missing Checked Headers:
+    - All specifically checked headers are present.
+
+--------------------------------------------------
+🌐 ROBOTS.TXT (CHECKED FROM: HTTPS://GITHUB.COM/ROBOTS.TXT)
+--------------------------------------------------
+- Exists:           Yes
+- Content Preview (first 10 lines):
+  # If you would like to crawl GitHub contact us via https://support.github.com?tags=dotcom-robots
+  # We also provide an extensive API: https://docs.github.com
+  User-agent: baidu
+  crawl-delay: 1
+
+
+  User-agent: *
+
+  Disallow: /*/*/pulse
+  Disallow: /*/*/projects
+- Disallow Rules (Sample):
+    - Disallow: /*/*/pulse
+    - Disallow: /*/*/projects
+    - Disallow: /*/*/forks
+    - Disallow: /*/*/issues/new
+    - Disallow: /*/*/milestones/new
+    - ...and 51 more.
+- Sitemap Directives:
+    None Found
+- Other Key Directives (Sample):
+    - User-agent: baidu
+    - crawl-delay: 1
+    - User-agent: *
+    - Allow: /*?tab=achievements&achievement=*
+
+--------------------------------------------------
+🌐 DNS RECORDS
+--------------------------------------------------
+- A Records:
+    - 140.82.113.3
+- NS Records:
+    - dns1.p08.nsone.net
+    - dns2.p08.nsone.net
+    - dns3.p08.nsone.net
+    - dns4.p08.nsone.net
+    - ns-1283.awsdns-32.org
+    - ns-1707.awsdns-21.co.uk
+    - ns-421.awsdns-52.com
+    - ns-520.awsdns-01.net
+- MX Records:
+    - Preference: 1, Exchange: aspmx.l.google.com
+    - Preference: 5, Exchange: alt1.aspmx.l.google.com
+    - Preference: 5, Exchange: alt2.aspmx.l.google.com
+    - Preference: 10, Exchange: alt3.aspmx.l.google.com
+    - Preference: 10, Exchange: alt4.aspmx.l.google.com
+
+--------------------------------------------------
+🌐 GENERAL ERRORS / NOTES
+--------------------------------------------------
+- None
+- Placeholder for VirusTotal: VirusTotal API key not provided. Skipping VirusTotal check.
+- Placeholder for SEO Index Visibility: Manual check recommended for SEO index visibility.
+
+--------------------------------------------------
+⚠️ Scan Completed with Errors/Warnings (see details above)
+--------------------------------------------------
