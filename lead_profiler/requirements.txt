@@ -1,0 +1,5 @@
+# Required Python packages for Lead Profiler Tool
+# Will be populated as we add functionalities.
+requests # For VirusTotal and other HTTP requests
+python-whois
+dnspython
