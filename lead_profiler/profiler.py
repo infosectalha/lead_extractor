@@ -279,9 +279,11 @@ def get_virustotal_info(domain: str, api_key: str | None) -> dict:
     Placeholder function.
     """
     results = {
+        "vt_report_link": None,
         "detection_ratio": None,
-        "malicious_categories": [],
-        "detection_reasons": [],
+        "reputation": None,
+        "categories_list": [],
+        # "detection_reasons": [], # Deferring this detailed part for now, can be very verbose
         "error": None
     }
 
@@ -303,10 +305,87 @@ def get_virustotal_info(domain: str, api_key: str | None) -> dict:
     #    - response.json()['data']['attributes']['last_analysis_results'] for detection reasons by AV engines
     # 5. Handling API errors (rate limits, not found, invalid key).
 
-    results["error"] = "VirusTotal integration not fully implemented yet."
-    # Simulating a successful call for structure, replace with actual API call
-    # results["detection_ratio"] = "0/91"
-    # results["malicious_categories"] = ["harmless"]
+    # Actual implementation:
+    api_url = f"https://www.virustotal.com/api/v3/domains/{domain}"
+    headers = {
+        "x-apikey": api_key,
+        "User-Agent": "PassiveLeadProfiler/1.0 (Python Automation Tool)"
+    }
+
+    try:
+        response = requests.get(api_url, headers=headers, timeout=10) # Increased timeout for external API
+
+        if response.status_code == 200:
+            # Parse the JSON response
+            try:
+                vt_data = response.json().get("data", {}).get("attributes", {})
+                results["error"] = None # Clear any previous placeholder error
+
+                # 1. Detection Ratio from last_analysis_stats
+                stats = vt_data.get("last_analysis_stats", {})
+                malicious = stats.get("malicious", 0)
+                suspicious = stats.get("suspicious", 0)
+                harmless = stats.get("harmless", 0)
+                undetected = stats.get("undetected", 0)
+                timeout = stats.get("timeout", 0)
+                total_scans = malicious + suspicious + harmless + undetected + timeout
+                detected_scans = malicious + suspicious
+                results["detection_ratio"] = f"{detected_scans}/{total_scans}" if total_scans > 0 else "0/0"
+
+                # 2. Overall Reputation
+                results["reputation"] = vt_data.get("reputation", "N/A")
+
+                # 3. Categories
+                categories_dict = vt_data.get("categories", {})
+                results["categories_list"] = list(categories_dict.keys()) if categories_dict else []
+
+                # 4. VT Report Link
+                results["vt_report_link"] = f"https://www.virustotal.com/gui/domain/{domain}/detection"
+
+                print(f"VirusTotal: Successfully parsed data for {domain}.")
+
+            except json.JSONDecodeError:
+                results["error"] = "VirusTotal API Error: Failed to decode JSON response."
+                print(results["error"])
+            except Exception as e: # Catch any other error during parsing
+                results["error"] = f"VirusTotal API Error: Error parsing data - {e}"
+                print(results["error"])
+
+        elif response.status_code == 401:
+            results["error"] = "VirusTotal API Error: Invalid API Key or unauthorized."
+            print(results["error"])
+        elif response.status_code == 404:
+            results["error"] = f"VirusTotal API Error: Domain {domain} not found in VirusTotal."
+            print(results["error"])
+        elif response.status_code == 429:
+            results["error"] = "VirusTotal API Error: Rate limit exceeded. Try again later."
+            print(results["error"])
+        else:
+            results["error"] = f"VirusTotal API Error: HTTP {response.status_code} - {response.text}"
+            print(results["error"])
+
+    except requests.exceptions.Timeout:
+        results["error"] = f"VirusTotal API Error: Request timed out for {domain}."
+        print(results["error"])
+    except requests.exceptions.ConnectionError as e:
+        results["error"] = f"VirusTotal API Error: Connection error for {domain} - {e}."
+        print(results["error"])
+    except requests.exceptions.RequestException as e:
+        results["error"] = f"VirusTotal API Error: An unexpected error occurred for {domain} - {e}."
+        print(results["error"])
+    except json.JSONDecodeError: # If response.json() fails later
+        results["error"] = "VirusTotal API Error: Failed to decode JSON response."
+        print(results["error"])
+
+    # If results["error"] is still "VirusTotal integration not fully implemented yet.",
+    # it means the success path was taken but not fully detailed.
+    # We will overwrite it if there was an actual error or clear it if successful.
+    if results.get("error") == "VirusTotal integration not fully implemented yet." and "Successfully fetched data" in printed_output_for_domain: # pseudo check
+        results["error"] = None
+
+
+    # results["detection_ratio"] = "0/91" # Placeholder
+    # results["malicious_categories"] = ["harmless"] # Placeholder
 
     return results
 
@@ -604,16 +683,20 @@ def get_dns_records_info(domain: str) -> dict:
 
 import argparse
 import json # For pretty printing the dict
+import os
 
-# Remember to set this or use env var / config file in actual VirusTotal implementation
-# For now, it's passed to the function.
+# This global variable will be populated by reading the environment variable.
 USER_VIRUSTOTAL_API_KEY = None
 
 def run_domain_profile(domain_input: str) -> dict:
     """
     Runs all profiling functions for a single domain input and aggregates results.
     """
+    global USER_VIRUSTOTAL_API_KEY # Declare that we intend to modify the global variable
+    USER_VIRUSTOTAL_API_KEY = os.environ.get("VIRUSTOTAL_API_KEY")
+
     master_results = {"input": domain_input, "domain": None, "profile_data": {}, "errors": []}
+    # Corrected: Removed erroneous triple quote that commented out the function body.
 
     parsed_domain = extract_domain(domain_input)
     if not parsed_domain:
@@ -901,6 +984,25 @@ def generate_text_report(profile_results: dict) -> str:
         report_parts.append(f"  (DNS Records Error: {dns_data['error']})")
     report_parts.append("")
 
+    # VIRUSTOTAL REPUTATION
+    section_header("VIRUSTOTAL REPUTATION")
+    vt_data = data.get("virustotal", {})
+    if vt_data:
+        if vt_data.get("error"):
+            if "API key not provided" in vt_data["error"]:
+                report_parts.append("- Status: API Key not provided. Scan skipped.")
+            else:
+                report_parts.append(f"- Status: Error - {vt_data['error']}")
+        else:
+            report_parts.append(f"- Report Link:       {get_data_value(vt_data, 'vt_report_link')}")
+            report_parts.append(f"- Detection Ratio:   {get_data_value(vt_data, 'detection_ratio')}")
+            report_parts.append(f"- Overall Reputation:{get_data_value(vt_data, 'reputation')}")
+            report_parts.append(f"- Detected Categories:")
+            report_parts.extend(format_list(vt_data.get("categories_list", []), indent=4, max_items=10)) # Show more categories if available
+    else:
+        report_parts.append("- Status: Data not available.")
+    report_parts.append("")
+
     # GENERAL ERRORS / NOTES
     section_header("GENERAL ERRORS / NOTES")
     # Filter out errors already displayed or specific to placeholders for this summary
@@ -908,7 +1010,7 @@ def generate_text_report(profile_results: dict) -> str:
     # Get actual error messages that might have been displayed inline with modules
     potential_inline_errors = [
         str(profile_results["profile_data"].get(module, {}).get("error", "impossible_string_match"))
-        for module in ["whois", "ssl", "server_info", "security_headers", "robots_txt", "dns_records"]
+        for module in ["whois", "ssl", "server_info", "security_headers", "robots_txt", "dns_records", "virustotal"] # Added virustotal
     ]
     actual_inline_error_substrings = {s for s in potential_inline_errors if s != "impossible_string_match"}
 
@@ -918,8 +1020,22 @@ def generate_text_report(profile_results: dict) -> str:
             if not err_message_from_list: # Skip if None or empty string in general_errors
                 continue
             is_already_shown_inline = False
+            # Check if the core part of the general error message is contained within any of the detailed module error messages
+            # This is to avoid re-listing errors that are already explained in a module section.
+            # Example: general_errors might have "VirusTotal Error: Domain not found",
+            # and vt_data['error'] would be "Domain not found in VirusTotal."
+            # We want to avoid listing the general one if the specific one is shown.
+            # This current filtering logic might be too broad or too narrow.
+            # A simpler approach might be to just list all general_errors if any exist,
+            # or refine the conditions under which module-specific errors are added to general_errors.
+
+            # Current logic: if the general error string CONTAINS a known module error string, assume it's covered.
+            # This might not be perfect.
             for inline_substring in actual_inline_error_substrings:
-                if inline_substring in err_message_from_list: # Check if the general error *contains* an inline error msg
+                 # Check if the specific module error message is part of the general error message from the list.
+                 # This is trying to see if `err_message_from_list` (e.g. "VirusTotal Error: Invalid API Key")
+                 # contains `inline_substring` (e.g. "Invalid API Key or unauthorized.").
+                if inline_substring in err_message_from_list:
                     is_already_shown_inline = True
                     break
             if not is_already_shown_inline:
@@ -929,16 +1045,19 @@ def generate_text_report(profile_results: dict) -> str:
         for err_msg in filtered_general_errors:
              report_parts.append(f"- {err_msg}")
     else:
-        if not general_errors: # No errors at all
+        # If filtered_general_errors is empty, it means all general_errors were covered by inline module errors,
+        # or there were no general_errors to begin with.
+        # We still want to print "None" if there were truly no errors at all.
+        is_any_module_error = any(actual_inline_error_substrings) # Check if any module had an error reported inline
+        if not general_errors and not is_any_module_error:
              report_parts.append("- None")
+        elif not filtered_general_errors and (general_errors or is_any_module_error):
+            # This means all general errors were filtered out (presumably shown inline)
+            # or there were only inline errors. No need to print an additional "None" here.
+            pass
 
-    # Placeholder notes
-    vt_info = data.get("virustotal", {})
-    if vt_info.get("error") == "VirusTotal API key not provided.":
-        report_parts.append("- Placeholder for VirusTotal: VirusTotal API key not provided. Skipping VirusTotal check.")
-    elif vt_info.get("error") == "VirusTotal integration not fully implemented yet.":
-         report_parts.append("- Placeholder for VirusTotal: Integration not fully implemented.")
 
+    # Placeholder notes for SEO (VirusTotal placeholder note is handled by its own section now)
     seo_info = data.get("seo_visibility", {})
     if seo_info.get("error") and "not fully implemented" in seo_info.get("error"):
         report_parts.append(f"- Placeholder for SEO Index Visibility: {seo_info.get('status_notes')}")

@@ -1,0 +1,112 @@
+📄 Lead Profiling Report for: google.com
+   (Generated on: 2025-06-28 11:40:52 UTC)
+
+--------------------------------------------------
+🌐 DOMAIN INFORMATION
+--------------------------------------------------
+- Domain:           google.com
+- Registrar:        MarkMonitor, Inc.
+- Creation Date:    1997-09-15T04:00:00
+- Expiration Date:  2028-09-14T04:00:00
+- Domain Age:       27 years, 9 months
+
+--------------------------------------------------
+🌐 SSL CERTIFICATE
+--------------------------------------------------
+- HTTPS Enabled:    Yes
+- Certificate Valid:Yes
+- Issuer:           Google Trust Services
+- Common Name (CN): *.google.com
+- Subject Alt Names (SANs):
+    - *.google.com
+    - *.appengine.google.com
+    - *.bdn.dev
+    - *.origin-test.bdn.dev
+    - *.cloud.google.com
+    - ...and 132 more.
+- Certificate Expiry: 2025-08-25T08:35:29+00:00
+
+--------------------------------------------------
+🌐 TECH STACK (SERVER)
+--------------------------------------------------
+- Server Header:    gws
+
+--------------------------------------------------
+🌐 SECURITY HEADERS (CHECKED FROM: HTTPS://WWW.GOOGLE.COM/)
+--------------------------------------------------
+- Content-Security-Policy:     Missing
+- Strict-Transport-Security:   Missing
+- X-Frame-Options:             Present: SAMEORIGIN
+- X-XSS-Protection:            Present: 0
+
+  Present Headers:
+    - X-Frame-Options: SAMEORIGIN
+    - X-XSS-Protection: 0
+
+  Missing Checked Headers:
+    - Content-Security-Policy
+    - Strict-Transport-Security
+
+--------------------------------------------------
+🌐 ROBOTS.TXT (CHECKED FROM: HTTPS://WWW.GOOGLE.COM/ROBOTS.TXT)
+--------------------------------------------------
+- Exists:           Yes
+- Content Preview (first 10 lines):
+  User-agent: *
+  User-agent: Yandex
+  Disallow: /search
+  Allow: /search/about
+  Allow: /search/howsearchworks
+  Disallow: /sdch
+  Disallow: /groups
+  Disallow: /index.html?
+  Disallow: /?
+  Allow: /?hl=
+- Disallow Rules (Sample):
+    - Disallow: /search
+    - Disallow: /sdch
+    - Disallow: /groups
+    - Disallow: /index.html?
+    - Disallow: /?
+    - ...and 202 more.
+- Sitemap Directives:
+    - Sitemap: https://www.google.com/sitemap.xml
+- Other Key Directives (Sample):
+    - User-agent: *
+    - User-agent: Yandex
+    - Allow: /search/about
+    - Allow: /search/howsearchworks
+    - Allow: /?hl=
+    - ...and 58 more.
+
+--------------------------------------------------
+🌐 DNS RECORDS
+--------------------------------------------------
+- A Records:
+    - 74.125.126.100
+    - 74.125.126.101
+    - 74.125.126.102
+    - 74.125.126.113
+    - 74.125.126.138
+    - 74.125.126.139
+- NS Records:
+    - ns1.google.com
+    - ns2.google.com
+    - ns3.google.com
+    - ns4.google.com
+- MX Records:
+    - Preference: 10, Exchange: smtp.google.com
+
+--------------------------------------------------
+🌐 VIRUSTOTAL REPUTATION
+--------------------------------------------------
+- Status: API Key not provided. Scan skipped.
+
+--------------------------------------------------
+🌐 GENERAL ERRORS / NOTES
+--------------------------------------------------
+- Placeholder for SEO Index Visibility: Manual check recommended for SEO index visibility.
+
+--------------------------------------------------
+⚠️ Scan Completed with Errors/Warnings (see details above)
+--------------------------------------------------

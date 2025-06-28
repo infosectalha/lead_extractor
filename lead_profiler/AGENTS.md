@@ -34,11 +34,12 @@ This document provides guidance for AI agents working on the Lead Profiler Tool 
 
 ### API Key Handling
 
-*   **VirusTotal API Key**: The `get_virustotal_info()` function is currently a placeholder. When implementing it fully:
-    *   The primary method for obtaining the API key should be from an environment variable (e.g., `VIRUSTOTAL_API_KEY`).
-    *   Consider a fallback to a configuration file (e.g., `.env` or `config.ini`) if the environment variable is not set. This file should be added to `.gitignore`.
+*   **VirusTotal API Key**:
+    *   The `get_virustotal_info()` function relies on an API key for VirusTotal.
+    *   This key is read from the environment variable `VIRUSTOTAL_API_KEY` within the `run_domain_profile()` function and stored in the global variable `USER_VIRUSTOTAL_API_KEY`.
+    *   If the environment variable is not set, the VirusTotal scan is skipped, and this is noted in the output.
+    *   Future enhancements could include a fallback to a configuration file (e.g., `.env` or `config.ini`), which should be gitignored.
     *   Do NOT hardcode API keys directly into the script for committed code.
-    *   The `USER_VIRUSTOTAL_API_KEY` global variable in `profiler.py` is a temporary placeholder for development and should be replaced with robust key management.
 
 ### Output Format
 

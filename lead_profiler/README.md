@@ -16,9 +16,13 @@ This version of the tool supports profiling a single domain provided as a comman
     *   Expiry date
     *   Issuer info
     *   Common Name (CN) and Subject Alternative Names (SAN)
-3.  **🛡️ VirusTotal Integration (Placeholder)**:
-    *   Currently a placeholder. Full integration requires a VirusTotal API key.
-    *   Will eventually return detection ratio and malicious categories.
+3.  **🛡️ VirusTotal Integration**:
+    *   Fetches domain reputation from VirusTotal (requires a `VIRUSTOTAL_API_KEY` environment variable).
+    *   Returns:
+        *   Detection ratio (e.g., X/Y)
+        *   Overall reputation score
+        *   Detected categories
+        *   Direct link to the VT GUI report.
 4.  **🧱 Tech Stack Detection (Basic)**:
     *   Detects server type from the `Server` HTTP header (e.g., Apache, Nginx).
     *   *Advanced tech stack detection (CMS, JS frameworks) is planned for future phases.*
@@ -72,6 +76,16 @@ This version of the tool supports profiling a single domain provided as a comman
     ```bash
     python profiler.py admin@example.com
     ```
+
+    **Note on VirusTotal API Key**: For the VirusTotal integration to work, you need to set the `VIRUSTOTAL_API_KEY` environment variable to your VirusTotal API v3 key.
+    Example:
+    ```bash
+    export VIRUSTOTAL_API_KEY="your_actual_api_key_here" # On Linux/macOS
+    # set VIRUSTOTAL_API_KEY="your_actual_api_key_here" # On Windows CMD
+    # $env:VIRUSTOTAL_API_KEY="your_actual_api_key_here" # On Windows PowerShell
+    ```
+    If the API key is not set, the VirusTotal scan will be skipped.
+
     The tool will output the collected information in a JSON format to the console.
 
 ## 📄 Output
